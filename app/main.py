@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
-from . import db
+from . import db, reports
 
 db.init_db()
 app = FastAPI(title="Expense Tracker API")
@@ -50,16 +50,5 @@ def delete_expense(expense_id: int):
 
 @app.get("/reports/by-category")
 def report_by_category():
-    """Total and count of expenses per category, sorted by category name."""
-    result = []
-    with db.get_conn() as conn:
-        categories = conn.execute(
-            "SELECT DISTINCT category FROM expenses ORDER BY category"
-        ).fetchall()
-        for c in categories:
-            row = conn.execute(
-                "SELECT SUM(amount) AS total, COUNT(*) AS n FROM expenses WHERE category = ?",
-                (c["category"],),
-            ).fetchone()
-            result.append({"category": c["category"], "total": round(row["total"], 2), "count": row["n"]})
-    return result
+    """Total and count of expenses per category."""
+    return reports.category_report()
