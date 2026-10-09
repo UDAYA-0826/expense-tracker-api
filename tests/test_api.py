@@ -24,6 +24,6 @@ def test_report_by_category(client):
     add(client, amount=4.5, category="food")
     add(client, amount=20, category="travel")
     assert client.get("/reports/by-category").json() == [
-        {"category": "food", "total": 15.0, "count": 2},
         {"category": "travel", "total": 20.0, "count": 1},
+        {"category": "food", "total": 15.0, "count": 2},
     ]
