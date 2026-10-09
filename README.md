@@ -14,5 +14,6 @@ pytest
 ```
 
 ## Endpoints
-- `POST /expenses`, `GET /expenses`, `GET /expenses/{id}`, `DELETE /expenses/{id}`
+- `GET /expenses?category=&limit=&offset=` (filter + pagination)
+- `POST /expenses`, `GET /expenses/{id}`, `DELETE /expenses/{id}`
 - `GET /reports/by-category`
