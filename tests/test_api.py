@@ -27,3 +27,22 @@ def test_report_by_category(client):
         {"category": "food", "total": 15.0, "count": 2},
         {"category": "travel", "total": 20.0, "count": 1},
     ]
+
+
+def test_list_filters_by_category(client):
+    add(client, category="food")
+    add(client, category="travel")
+    rows = client.get("/expenses", params={"category": "travel"}).json()
+    assert len(rows) == 1 and rows[0]["category"] == "travel"
+
+
+def test_list_pagination(client):
+    for i in range(5):
+        add(client, description=f"e{i}")
+    page = client.get("/expenses", params={"limit": 2, "offset": 2}).json()
+    assert [r["description"] for r in page] == ["e2", "e3"]
+
+
+def test_list_rejects_bad_limit(client):
+    assert client.get("/expenses", params={"limit": 0}).status_code == 422
+    assert client.get("/expenses", params={"limit": 101}).status_code == 422

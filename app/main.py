@@ -1,4 +1,6 @@
-from fastapi import FastAPI, HTTPException
+from typing import Optional
+
+from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from . import db
@@ -25,9 +27,21 @@ def create_expense(expense: ExpenseIn):
 
 
 @app.get("/expenses")
-def list_expenses():
+def list_expenses(
+    category: Optional[str] = None,
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+):
+    """List expenses, optionally filtered by category, with limit/offset pagination."""
+    sql = "SELECT * FROM expenses"
+    params: list = []
+    if category:
+        sql += " WHERE category = ?"
+        params.append(category)
+    sql += " ORDER BY id LIMIT ? OFFSET ?"
+    params += [limit, offset]
     with db.get_conn() as conn:
-        rows = conn.execute("SELECT * FROM expenses ORDER BY id").fetchall()
+        rows = conn.execute(sql, params).fetchall()
     return [dict(r) for r in rows]
 
 
