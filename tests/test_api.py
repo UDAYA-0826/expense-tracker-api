@@ -27,3 +27,18 @@ def test_report_by_category(client):
         {"category": "food", "total": 15.0, "count": 2},
         {"category": "travel", "total": 20.0, "count": 1},
     ]
+
+
+def test_search_by_description(client):
+    add(client, description="Coffee beans")
+    add(client, description="Train ticket")
+    rows = client.get("/expenses/search", params={"q": "coffee"}).json()
+    assert [r["description"] for r in rows] == ["Coffee beans"]
+
+
+def test_monthly_summary_totals(client):
+    add(client, amount=10)
+    add(client, amount=30)
+    from datetime import date
+    body = client.get("/expenses/summary", params={"month": date.today().strftime("%Y-%m")}).json()
+    assert body["total"] == 40 and body["count"] == 2

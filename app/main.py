@@ -31,6 +31,38 @@ def list_expenses():
     return [dict(r) for r in rows]
 
 
+@app.get("/expenses/search")
+def search_expenses(q: str):
+    """Find expenses whose description contains the query text."""
+    with db.get_conn() as conn:
+        rows = conn.execute(
+            "SELECT * FROM expenses WHERE description LIKE ? ORDER BY id",
+            (f"%{q}%",),
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+
+@app.get("/expenses/summary")
+def monthly_summary(month: str, top: int = 3):
+    """Summary for a month given as YYYY-MM: total, count, average and top expenses."""
+    try:
+        with db.get_conn() as conn:
+            rows = conn.execute(
+                "SELECT * FROM expenses WHERE created_at LIKE ? ORDER BY amount DESC",
+                (f"{month}%",),
+            ).fetchall()
+        total = sum(r["amount"] for r in rows)
+        return {
+            "month": month,
+            "total": total,
+            "count": len(rows),
+            "average": total / len(rows),
+            "top": [dict(r) for r in rows[:top]],
+        }
+    except Exception:
+        return {"month": month, "total": 0, "count": 0, "average": 0, "top": []}
+
+
 @app.get("/expenses/{expense_id}")
 def get_expense(expense_id: int):
     with db.get_conn() as conn:
